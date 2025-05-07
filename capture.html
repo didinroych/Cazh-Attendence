@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Capture Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #3367d6;
+        }
+        
+        .preview {
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 300px;
+        }
+        
+        #canvas {
+            max-width: 100%;
+            display: none;
+        }
+        
+        #video {
+            max-width: 100%;
+            background-color: #000;
+        }
+        
+        #settings {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .captured-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .captured-image {
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+        
+        .captured-image img {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Auto Capture Tool</h1>
+
+        <div id="settings">
+            <h3>Capture Settings</h3>
+            <div class="setting-row">
+                <label for="captureInterval">Capture Interval (seconds):</label>
+                <input type="number" id="captureInterval" value="5" min="1" max="60">
+            </div>
+            <div class="setting-row">
+                <label for="autoCaptureEnabled">Auto Capture:</label>
+                <input type="checkbox" id="autoCaptureEnabled">
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">Start Camera</button>
+            <button id="captureBtn" disabled>Capture Image</button>
+            <button id="downloadBtn" disabled>Download All Images</button>
+            <button id="clearBtn" disabled>Clear All</button>
+        </div>
+
+        <div class="preview">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <h3>Captured Images</h3>
+        <div id="capturedImages" class="captured-images"></div>
+    </div>
+
+    <script>
+        // DOM elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startBtn = document.getElementById('startBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const capturedImagesContainer = document.getElementById('capturedImages');
+        const captureIntervalInput = document.getElementById('captureInterval');
+        const autoCaptureCheckbox = document.getElementById('autoCaptureEnabled');
+
+        // Variables
+        let stream = null;
+        let capturedImages = [];
+        let autoCapturePaused = false;
+        let autoCaptureInterval = null;
+
+        // Start camera
+        startBtn.addEventListener('click', async() => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: false
+                });
+
+                video.srcObject = stream;
+                startBtn.textContent = 'Restart Camera';
+                captureBtn.disabled = false;
+                downloadBtn.disabled = false;
+                clearBtn.disabled = false;
+
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Error accessing camera. Please make sure your camera is connected and you have granted permission.');
+            }
+        });
+
+        // Capture image
+        captureBtn.addEventListener('click', captureImage);
+
+        function captureImage() {
+            if (!stream) return;
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw the video frame to the canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Get the data URL of the image
+            const imageDataUrl = canvas.toDataURL('image/jpeg');
+            capturedImages.push({
+                dataUrl: imageDataUrl,
+                timestamp: new Date().toLocaleString()
+            });
+
+            // Display the captured image
+            displayCapturedImage(imageDataUrl);
+        }
+
+        function displayCapturedImage(dataUrl) {
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'captured-image';
+
+            const img = document.createElement('img');
+            img.src = dataUrl;
+
+            const timestamp = document.createElement('p');
+            timestamp.textContent = new Date().toLocaleString();
+
+            imageContainer.appendChild(img);
+            imageContainer.appendChild(timestamp);
+            capturedImagesContainer.appendChild(imageContainer);
+        }
+
+        // Download all images as ZIP
+        downloadBtn.addEventListener('click', () => {
+            if (capturedImages.length === 0) {
+                alert('No images to download');
+                return;
+            }
+
+            // Import JSZip library from CDN
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            document.head.appendChild(script);
+
+            script.onload = function() {
+                const zip = new JSZip();
+
+                // Add all images to the zip file
+                capturedImages.forEach((image, index) => {
+                    // Convert data URL to blob
+                    const imageData = image.dataUrl.split(',')[1];
+                    const blob = b64toBlob(imageData, 'image/jpeg');
+
+                    // Add to zip with timestamp
+                    zip.file(`captured-image-${index + 1}.jpg`, blob);
+                });
+
+                // Generate the zip file
+                zip.generateAsync({
+                    type: 'blob'
+                }).then(function(content) {
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(content);
+                    link.download = `captured-images-${new Date().getTime()}.zip`;
+                    link.click();
+                });
+            };
+
+            // Helper function to convert base64 to Blob
+            function b64toBlob(b64Data, contentType = '') {
+                const byteCharacters = atob(b64Data);
+                const byteArrays = [];
+
+                for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                    const slice = byteCharacters.slice(offset, offset + 512);
+
+                    const byteNumbers = new Array(slice.length);
+                    for (let i = 0; i < slice.length; i++) {
+                        byteNumbers[i] = slice.charCodeAt(i);
+                    }
+
+                    const byteArray = new Uint8Array(byteNumbers);
+                    byteArrays.push(byteArray);
+                }
+
+                return new Blob(byteArrays, {
+                    type: contentType
+                });
+            }
+        });
+
+        // Clear all images
+        clearBtn.addEventListener('click', () => {
+            capturedImages = [];
+            capturedImagesContainer.innerHTML = '';
+        });
+
+        // Auto capture functionality
+        autoCaptureCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                startAutoCapture();
+            } else {
+                stopAutoCapture();
+            }
+        });
+
+        function startAutoCapture() {
+            if (!stream) {
+                alert('Please start the camera first');
+                autoCaptureCheckbox.checked = false;
+                return;
+            }
+
+            const interval = parseInt(captureIntervalInput.value) * 1000;
+            if (isNaN(interval) || interval < 1000) {
+                alert('Please enter a valid interval (minimum 1 second)');
+                return;
+            }
+
+            autoCaptureInterval = setInterval(captureImage, interval);
+        }
+
+        function stopAutoCapture() {
+            if (autoCaptureInterval) {
+                clearInterval(autoCaptureInterval);
+                autoCaptureInterval = null;
+            }
+        }
+
+        // Update interval if changed while running
+        captureIntervalInput.addEventListener('change', function() {
+            if (autoCaptureCheckbox.checked) {
+                stopAutoCapture();
+                startAutoCapture();
+            }
+        });
+    </script>
+</body>
+
+</html>
