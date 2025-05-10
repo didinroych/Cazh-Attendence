@@ -174,6 +174,10 @@ class FaceDetectionRecognition:
             name: Recognized person name or "Unknown"
             confidence: Recognition confidence score
         """
+
+        aligned_face = self.face_recognizer.alignCrop(frame, face)
+        if self.is_spoof_frame(aligned_face):
+            return "Spoof Detected", 0.0
         if len(self.embeddings_db) == 0:
             return "Unknown", 0.0
         
@@ -443,6 +447,11 @@ class FaceDetectionRecognition:
             cv2.destroyAllWindows()
         
         return True
+    def is_spoof_frame(self, aligned_face, blur_thresh=100.0):
+        gray = cv2.cvtColor(aligned_face, cv2.COLOR_BGR2GRAY)
+        blur_score = cv2.Laplacian(gray, cv2.CV_64F).var()
+        return blur_score < blur_thresh  # True = Spoof (terlalu blur)
+
 
 
 def main():

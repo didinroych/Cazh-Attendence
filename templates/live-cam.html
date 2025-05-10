@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Face Verification System - Auto Mode</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .video-container {
+            position: relative;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        #webcam {
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            border-radius: 10px;
+            background-color: #000;
+            border: 5px solid #ddd;
+            transition: border-color 0.3s;
+        }
+        
+        #webcam.verified {
+            border-color: #28a745;
+        }
+        
+        #webcam.spoof {
+            border-color: #ffc107;
+        }
+        
+        #webcam.no-face {
+            border-color: #dc3545;
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .danger-btn {
+            background-color: #dc3545;
+        }
+        
+        .danger-btn:hover:not(:disabled) {
+            background-color: #c82333;
+        }
+        
+        .status-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .status-live {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-stopped {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .auto-verify-indicator {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .live-result {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .result-text {
+            margin: 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .settings {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .settings label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .settings select {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .settings input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        .settings input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .interval-display {
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Live Face Verification System</h1>
+
+        <div class="video-container">
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            <div class="status-bar">
+                <div id="status-indicator" class="status-indicator status-stopped">Camera Off</div>
+                <div id="auto-verify-indicator" class="auto-verify-indicator" style="display: none;">Auto-Verify OFF</div>
+            </div>
+            <div id="live-result" class="live-result">
+                <p id="result-text" class="result-text"></p>
+            </div>
+        </div>
+
+        <div class="error-message" id="error-message"></div>
+
+        <div class="settings">
+            <label>
+                Camera Selection:
+                <select id="camera-select">
+                    <option value="">Loading cameras...</option>
+                </select>
+            </label>
+            <label>
+                <input type="checkbox" id="auto-verify-checkbox"> Enable Auto-Verification
+            </label>
+            <label>
+                Verification Interval:
+                <input type="range" id="interval-slider" min="1" max="10" value="3">
+                <div class="interval-display">Every <span id="interval-value">3</span> seconds</div>
+            </label>
+        </div>
+
+        <div class="controls">
+            <button id="start-btn">Start Camera</button>
+            <button id="verify-btn" disabled>Manual Verify</button>
+            <button id="stop-btn" class="danger-btn" disabled>Stop Camera</button>
+        </div>
+
+        <div class="debug-info" id="debug-info"></div>
+    </div>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const startBtn = document.getElementById('start-btn');
+        const verifyBtn = document.getElementById('verify-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const statusIndicator = document.getElementById('status-indicator');
+        const autoVerifyIndicator = document.getElementById('auto-verify-indicator');
+        const errorMessage = document.getElementById('error-message');
+        const liveResult = document.getElementById('live-result');
+        const resultText = document.getElementById('result-text');
+        const autoVerifyCheckbox = document.getElementById('auto-verify-checkbox');
+        const intervalSlider = document.getElementById('interval-slider');
+        const intervalValue = document.getElementById('interval-value');
+        const cameraSelect = document.getElementById('camera-select');
+        const debugInfo = document.getElementById('debug-info');
+
+        let stream = null;
+        let autoVerifyInterval = null;
+        let isVerifying = false;
+        let currentCameraId = null;
+
+        // Initialize camera list
+        async function getCameraList() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                cameraSelect.innerHTML = '';
+                videoDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.text = device.label || `Camera ${index + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+
+                if (videoDevices.length === 0) {
+                    showError('Tidak ada kamera yang terdeteksi');
+                }
+            } catch (err) {
+                console.error('Error getting camera list:', err);
+                showError('Gagal mendapatkan daftar kamera');
+            }
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startCamera);
+        stopBtn.addEventListener('click', stopCamera);
+        verifyBtn.addEventListener('click', () => verifyFace(false));
+        autoVerifyCheckbox.addEventListener('change', toggleAutoVerify);
+        intervalSlider.addEventListener('input', updateInterval);
+        cameraSelect.addEventListener('change', () => {
+            if (stream) {
+                stopCamera();
+                startCamera();
+            }
+        });
+
+        // Initialize camera list on page load
+        getCameraList();
+
+        function updateInterval() {
+            intervalValue.textContent = intervalSlider.value;
+            if (autoVerifyInterval) {
+                // Restart auto-verify with new interval
+                clearInterval(autoVerifyInterval);
+                if (autoVerifyCheckbox.checked) {
+                    startAutoVerify();
+                }
+            }
+        }
+
+        async function startCamera() {
+            try {
+                const selectedCameraId = cameraSelect.value;
+                const constraints = {
+                    video: {
+                        width: {
+                            ideal: 640
+                        },
+                        height: {
+                            ideal: 480
+                        }
+                    },
+                    audio: false
+                };
+
+                if (selectedCameraId) {
+                    constraints.video.deviceId = {
+                        exact: selectedCameraId
+                    };
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                currentCameraId = selectedCameraId;
+
+                // Update UI
+                startBtn.disabled = true;
+                verifyBtn.disabled = false;
+                stopBtn.disabled = false;
+                statusIndicator.textContent = 'Camera Live';
+                statusIndicator.className = 'status-indicator status-live';
+                errorMessage.style.display = 'none';
+
+                // Re-enumerate devices to get proper labels
+                await getCameraList();
+                cameraSelect.value = currentCameraId;
+
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                showError('Tidak dapat mengakses kamera. Pastikan Anda telah memberikan izin akses kamera.');
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                stream = null;
+
+                // Clear auto-verify if running
+                if (autoVerifyInterval) {
+                    clearInterval(autoVerifyInterval);
+                    autoVerifyInterval = null;
+                }
+
+                // Update UI
+                startBtn.disabled = false;
+                verifyBtn.disabled = true;
+                stopBtn.disabled = true;
+                statusIndicator.textContent = 'Camera Off';
+                statusIndicator.className = 'status-indicator status-stopped';
+                liveResult.style.display = 'none';
+                video.className = '';
+                autoVerifyCheckbox.checked = false;
+                autoVerifyIndicator.textContent = 'Auto-Verify OFF';
+                autoVerifyIndicator.style.display = 'none';
+            }
+        }
+
+        function startAutoVerify() {
+            const intervalSeconds = parseInt(intervalSlider.value);
+            autoVerifyInterval = setInterval(() => {
+                if (!isVerifying && stream) {
+                    console.log('Auto-verifying...');
+                    verifyFace(true);
+                }
+            }, intervalSeconds * 1000);
+            console.log(`Auto-verify started with ${intervalSeconds}s interval`);
+        }
+
+        function toggleAutoVerify() {
+            if (autoVerifyCheckbox.checked && stream) {
+                // Start auto-verification
+                startAutoVerify();
+                autoVerifyIndicator.textContent = 'Auto-Verify ON';
+                autoVerifyIndicator.style.display = 'block';
+                verifyFace(true); // Verify immediately
+            } else {
+                // Stop auto-verification
+                if (autoVerifyInterval) {
+                    clearInterval(autoVerifyInterval);
+                    autoVerifyInterval = null;
+                }
+                autoVerifyIndicator.textContent = 'Auto-Verify OFF';
+                autoVerifyIndicator.style.display = autoVerifyCheckbox.checked ? 'block' : 'none';
+                liveResult.style.display = 'none';
+                video.className = '';
+                console.log('Auto-verify stopped');
+            }
+        }
+
+        async function verifyFace(isAuto = false) {
+            if (!stream || isVerifying) {
+                console.log('Cannot verify: no stream or already verifying');
+                return;
+            }
+
+            isVerifying = true;
+            console.log('Starting verification...');
+
+            // Ensure video has proper dimensions
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+                console.log('Video not ready yet');
+                isVerifying = false;
+                return;
+            }
+
+            // Capture gambar dari webcam
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            // Convert canvas ke blob
+            canvas.toBlob(async(blob) => {
+                if (!blob) {
+                    console.error('Failed to create blob');
+                    isVerifying = false;
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('image', blob, 'webcam-capture.jpg');
+
+                try {
+                    const response = await fetch('/verify-face', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    console.log('Verification result:', data);
+                    displayResult(data, isAuto);
+                } catch (error) {
+                    console.error('Verification error:', error);
+                    if (!isAuto) {
+                        showError('Terjadi kesalahan saat menghubungi server');
+                    }
+                } finally {
+                    isVerifying = false;
+                }
+            }, 'image/jpeg', 0.95);
+        }
+
+        function displayResult(data, isAuto = false) {
+            if (data.error) {
+                if (!isAuto) {
+                    showError(data.error);
+                }
+                return;
+            }
+
+            if (data.status === 'no face detected') {
+                video.className = 'no-face';
+                resultText.textContent = 'Wajah tidak terdeteksi';
+                resultText.style.color = '#dc3545';
+            } else if (data.status === 'ok') {
+                const isSpoof = data.spoof;
+                video.className = isSpoof ? 'spoof' : 'verified';
+                resultText.innerHTML = `
+                    <div>Nama: ${data.name}</div>
+                    <div>Confidence: ${(data.confidence * 100).toFixed(2)}%</div>
+                    <div>Status: ${isSpoof ? 'Kemungkinan Spoof' : 'Valid'}</div>
+                `;
+                resultText.style.color = isSpoof ? '#ffc107' : '#28a745';
+            }
+
+            liveResult.style.display = 'block';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // Auto-stop camera when page is closed/refreshed
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
+        });
+
+        // Debug: Show console logs
+        console.log('Script loaded');
+    </script>
+</body>
+
+</html>

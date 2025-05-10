@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Verification System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #007bff;
+        }
+        
+        .upload-area p {
+            margin: 10px 0;
+            color: #666;
+        }
+        
+        #file-input {
+            display: none;
+        }
+        
+        .preview-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        #preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+        
+        .result-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .loading {
+            text-align: center;
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .loading img {
+            width: 50px;
+        }
+        
+        .result-item {
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Face Verification System</h1>
+
+        <div class="upload-area" id="upload-area">
+            <p>📷 Klik atau drag & drop gambar di sini</p>
+            <p>Format yang didukung: JPG, PNG</p>
+            <input type="file" id="file-input" accept="image/*">
+        </div>
+
+        <div class="preview-container">
+            <img id="preview-image" alt="Preview gambar">
+        </div>
+
+        <button id="verify-btn" disabled>Verifikasi Wajah</button>
+
+        <div class="loading" id="loading">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='35' fill='none' stroke='%23007bff' stroke-width='10'%3E%3Canimate attributeName='stroke-dasharray' from='0 220' to='220 220' dur='1.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E"
+                alt="Loading">
+            <p>Sedang memproses...</p>
+        </div>
+
+        <div class="result-container" id="result-container">
+            <!-- Hasil akan ditampilkan di sini -->
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const uploadArea = document.getElementById('upload-area');
+        const previewImage = document.getElementById('preview-image');
+        const verifyBtn = document.getElementById('verify-btn');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('result-container');
+
+        // Event listeners
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#007bff';
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ccc';
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        verifyBtn.addEventListener('click', verifyFace);
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Mohon upload file gambar yang valid!');
+                return;
+            }
+
+            // Preview gambar
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+                verifyBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+
+            // Simpan file untuk upload
+            window.selectedFile = file;
+        }
+
+        async function verifyFace() {
+            if (!window.selectedFile) {
+                alert('Mohon pilih gambar terlebih dahulu!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', window.selectedFile);
+
+            // Tampilkan loading
+            verifyBtn.disabled = true;
+            loading.style.display = 'block';
+            resultContainer.style.display = 'none';
+
+            try {
+                const response = await fetch('/verify-face', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                displayResult(data);
+            } catch (error) {
+                displayError('Terjadi kesalahan saat menghubungi server');
+            } finally {
+                loading.style.display = 'none';
+                verifyBtn.disabled = false;
+            }
+        }
+
+        function displayResult(data) {
+            resultContainer.style.display = 'block';
+
+            if (data.error) {
+                resultContainer.className = 'result-container result-error';
+                resultContainer.innerHTML = `<h3>Error</h3><p>${data.error}</p>`;
+                return;
+            }
+
+            if (data.status === 'no face detected') {
+                resultContainer.className = 'result-container result-warning';
+                resultContainer.innerHTML = `
+                    <h3>Tidak Terdeteksi Wajah</h3>
+                    <p>Sistem tidak dapat mendeteksi wajah pada gambar yang diupload.</p>
+                    <p>Pastikan gambar menampilkan wajah dengan jelas dan pencahayaan yang cukup.</p>
+                `;
+                return;
+            }
+
+            if (data.status === 'ok') {
+                const isSpoof = data.spoof;
+                resultContainer.className = `result-container ${isSpoof ? 'result-warning' : 'result-success'}`;
+
+                let html = `<h3>Hasil Verifikasi</h3>`;
+                html += `<div class="result-item"><span class="result-label">Nama:</span> ${data.name}</div>`;
+                html += `<div class="result-item"><span class="result-label">Confidence:</span> ${(data.confidence * 100).toFixed(2)}%</div>`;
+                html += `<div class="result-item"><span class="result-label">Status:</span> ${isSpoof ? 'Kemungkinan Spoof/Palsu' : 'Wajah Valid'}</div>`;
+
+                if (isSpoof) {
+                    html += `<p style="margin-top: 15px; color: #856404;"><strong>Peringatan:</strong> Sistem mendeteksi kemungkinan percobaan spoofing atau foto palsu.</p>`;
+                }
+
+                resultContainer.innerHTML = html;
+            }
+        }
+
+        function displayError(message) {
+            resultContainer.style.display = 'block';
+            resultContainer.className = 'result-container result-error';
+            resultContainer.innerHTML = `<h3>Error</h3><p>${message}</p>`;
+        }
+    </script>
+</body>
+
+</html>
