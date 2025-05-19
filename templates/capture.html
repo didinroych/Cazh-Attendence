@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Capture Tool</title>
+    <style>
+         :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --background: #f9fafb;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 0.75rem;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background-color: var(--card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        h3 {
+            font-size: 1.25rem;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-width: 140px;
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .preview {
+            border: 1px solid var(--border);
+            padding: 1rem;
+            min-height: 300px;
+            border-radius: var(--radius);
+            background-color: #000;
+            overflow: hidden;
+        }
+        
+        #canvas {
+            max-width: 100%;
+            display: none;
+        }
+        
+        #video {
+            max-width: 100%;
+            background-color: #000;
+            border-radius: calc(var(--radius) - 0.5rem);
+        }
+        
+        #registerForm {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1.5rem;
+            background-color: #f8fafc;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        
+        #registerForm label {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        #registerForm input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        #registerForm input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+        
+        #statusMsg {
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            background-color: #f1f5f9;
+            font-weight: 500;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .captured-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .captured-image {
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            background-color: white;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .captured-image:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .captured-image img {
+            width: 100%;
+            border-radius: calc(var(--radius) - 0.5rem);
+            margin-bottom: 0.5rem;
+        }
+        
+        .captured-image p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-align: center;
+        }
+        
+        .navigation {
+            background-color: var(--card);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+        
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius);
+            transition: all 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+            background-color: var(--background);
+        }
+        
+        .nav-links a.active {
+            color: white;
+            background-color: var(--primary);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .mobile-menu-btn span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: var(--text);
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background-color: var(--card);
+                padding: 1rem;
+                gap: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                display: none;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .nav-links a {
+                display: block;
+                padding: 0.75rem 1rem;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 1.25rem;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navigation">
+        <div class="nav-container">
+            <div class="logo">Face Verification System</div>
+            <ul class="nav-links">
+                <li><a href="/">Live Camera</a></li>
+                <li><a href="/regist-new-face" class="active">Register Face</a></li>
+                <li><a href="/user-list">User List</a></li>
+            </ul>
+            <button class="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Auto Capture Tool</h1>
+
+        <div id="registerForm">
+            <label for="nameInput">Enter Name:</label>
+            <input type="text" id="nameInput" placeholder="e.g. Didin Roy">
+            <button id="recordBtn">Record & Register</button>
+            <p id="statusMsg"></p>
+        </div>
+
+        <div class="preview">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <h3>Captured Images</h3>
+        <div id="capturedImages" class="captured-images"></div>
+    </div>
+
+    <script>
+        // DOM elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const capturedImagesContainer = document.getElementById('capturedImages');
+
+        // add new feature
+        const videoElement = document.getElementById("video");
+        const recordBtn = document.getElementById("recordBtn");
+        const nameInput = document.getElementById("nameInput");
+        const statusMsg = document.getElementById("statusMsg");
+
+        // Variables
+        let capturedImages = [];
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        recordBtn.addEventListener("click", async() => {
+            const name = nameInput.value.trim();
+            if (!name) {
+                alert("Please enter a name.");
+                return;
+            }
+
+            // Start camera stream
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true
+            });
+            videoElement.srcObject = stream;
+
+            // Start recording
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(stream, {
+                mimeType: "video/webm"
+            });
+
+            mediaRecorder.ondataavailable = function(event) {
+                if (event.data.size > 0) recordedChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async function() {
+                const videoBlob = new Blob(recordedChunks, {
+                    type: "video/webm"
+                });
+
+                const formData = new FormData();
+                formData.append("name", name);
+                formData.append("video", videoBlob, "capture.webm");
+
+                statusMsg.textContent = "Uploading...";
+
+                try {
+                    const response = await fetch("/register-face", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    const data = await response.json();
+                    if (data.status === "registered") {
+                        statusMsg.textContent = `✅ Registered as ${data.name} with ${data.frames_used} frames.`;
+                    } else {
+                        statusMsg.textContent = `❌ Failed: ${data.error || "Unknown error"}`;
+                    }
+                } catch (err) {
+                    console.error("Upload error:", err);
+                    statusMsg.textContent = "❌ Upload failed.";
+                }
+            };
+
+            mediaRecorder.start();
+            statusMsg.textContent = "🎥 Recording...";
+
+            // Stop after 5 seconds
+            setTimeout(() => {
+                mediaRecorder.stop();
+                stream.getTracks().forEach(track => track.stop());
+            }, 5000);
+        });
+
+        function displayCapturedImage(dataUrl) {
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'captured-image';
+
+            const img = document.createElement('img');
+            img.src = dataUrl;
+
+            const timestamp = document.createElement('p');
+            timestamp.textContent = new Date().toLocaleString();
+
+            imageContainer.appendChild(img);
+            imageContainer.appendChild(timestamp);
+            capturedImagesContainer.appendChild(imageContainer);
+        }
+
+        // Helper function to convert base64 to Blob
+        function b64toBlob(b64Data, contentType = '') {
+            const byteCharacters = atob(b64Data);
+            const byteArrays = [];
+
+            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                const slice = byteCharacters.slice(offset, offset + 512);
+
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+
+                const byteArray = new Uint8Array(byteNumbers);
+                byteArrays.push(byteArray);
+            }
+
+            return new Blob(byteArrays, {
+                type: contentType
+            });
+        }
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+
+                // Animate the hamburger icon
+                const spans = mobileMenuBtn.querySelectorAll('span');
+                spans.forEach(span => span.classList.toggle('active'));
+            });
+        }
+    </script>
+</body>
+
+</html>

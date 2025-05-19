@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar User Teregistrasi</title>
+    <style>
+         :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #e0e7ff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --background: #f9fafb;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 0.75rem;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background);
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            color: var(--text);
+            line-height: 1.5;
+        }
+        /* .container {
+            background-color: var(--card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        } */
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background-color: var(--card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        ul {
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+        
+        li {
+            list-style: none;
+            padding: 1rem 1.25rem;
+            margin: 0.75rem 0;
+            background-color: var(--primary-light);
+            border-left: 5px solid var(--primary);
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text);
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        li:hover {
+            transform: translateX(3px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .refresh-btn {
+            display: block;
+            margin: 1.5rem auto;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .refresh-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+        
+        .navigation {
+            background-color: var(--card);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+        
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius);
+            transition: all 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+            background-color: var(--background);
+        }
+        
+        .nav-links a.active {
+            color: white;
+            background-color: var(--primary);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .mobile-menu-btn span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: var(--text);
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background-color: var(--card);
+                padding: 1rem;
+                gap: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                display: none;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .nav-links a {
+                display: block;
+                padding: 0.75rem 1rem;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+                margin: 20px auto;
+            }
+            .container {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <nav class="navigation">
+        <div class="nav-container">
+            <div class="logo">Face Verification System</div>
+            <ul class="nav-links">
+                <li><a href="/">Live Camera</a></li>
+                <li><a href="/regist-new-face" class="active">Register Face</a></li>
+                <li><a href="/user-list">User List</a></li>
+            </ul>
+            <button class="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav> -->
+    <nav class="navigation">
+        <div class="nav-container">
+            <div class="logo">Face Verification System</div>
+            <div class="nav-links">
+                <a href="/" class="{{ 'active' if request.path == '/' else '' }}">Live Camera</a>
+                <a href="/regist-new-face" class="{{ 'active' if request.path == '/regist-new-face' else '' }}">Register Face</a>
+                <a href="/user-list" class="{{ 'active' if request.path == '/user-list' else '' }}">User List</a>
+            </div>
+        </div>
+    </nav>
+
+    <h1>Daftar Wajah Teregistrasi</h1>
+
+    <ul id="userList">
+        <li class="loading">Memuat data...</li>
+    </ul>
+
+    <button class="refresh-btn" onclick="fetchUsers()">Refresh Data</button>
+    </div>
+
+    <script>
+        async function fetchUsers() {
+            const list = document.getElementById("userList");
+            list.innerHTML = "<li class='loading'>Memuat data...</li>";
+
+            try {
+                const res = await fetch("/get-user-face");
+                const data = await res.json();
+                list.innerHTML = "";
+
+                if (data.users.length === 0) {
+                    list.innerHTML = "<li>Belum ada user teregistrasi</li>";
+                    return;
+                }
+
+                data.users.forEach(name => {
+                    const li = document.createElement("li");
+                    li.textContent = name;
+                    list.appendChild(li);
+                });
+            } catch (err) {
+                list.innerHTML = "<li>Gagal memuat data</li>";
+                console.error(err);
+            }
+        }
+
+        // Load data saat pertama kali
+        fetchUsers();
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+
+                // Animate the hamburger icon
+                const spans = mobileMenuBtn.querySelectorAll('span');
+                spans.forEach(span => span.classList.toggle('active'));
+            });
+        }
+    </script>
+</body>
+
+</html>

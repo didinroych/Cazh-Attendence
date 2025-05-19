@@ -103,21 +103,45 @@ class FaceDetectionRecognition:
             config=""
         )
     
+    # def load_embeddings(self, embeddings_path):
+    #     """
+    #     Load face embeddings from a pickle file
+        
+    #     Args:
+    #         embeddings_path: Path to the embeddings database pickle file
+    #     """
+    #     if not os.path.exists(embeddings_path):
+    #         raise FileNotFoundError(f"Embeddings file not found at {embeddings_path}")
+        
+    #     with open(embeddings_path, 'rb') as f:
+    #         self.embeddings_db = pickle.load(f)
+        
+    #     print(f"Loaded {len(self.embeddings_db)} face profiles")
+
     def load_embeddings(self, embeddings_path):
         """
-        Load face embeddings from a pickle file
-        
-        Args:
-            embeddings_path: Path to the embeddings database pickle file
+        Load face embeddings from a pickle file safely.
+        If the file doesn't exist or is empty, initialize an empty database.
         """
+        self.embeddings_db = {}  # Default: empty DB
+
         if not os.path.exists(embeddings_path):
-            raise FileNotFoundError(f"Embeddings file not found at {embeddings_path}")
-        
-        with open(embeddings_path, 'rb') as f:
-            self.embeddings_db = pickle.load(f)
-        
-        print(f"Loaded {len(self.embeddings_db)} face profiles")
-    
+            print(f"[INFO] Embeddings file not found at '{embeddings_path}', starting fresh.")
+            return
+
+        if os.path.getsize(embeddings_path) == 0:
+            print(f"[INFO] Embeddings file '{embeddings_path}' is empty, starting fresh.")
+            return
+
+        try:
+            with open(embeddings_path, 'rb') as f:
+                self.embeddings_db = pickle.load(f)
+            print(f"[INFO] Loaded {len(self.embeddings_db)} face profiles from '{embeddings_path}'")
+        except Exception as e:
+            print(f"[ERROR] Failed to load embeddings from '{embeddings_path}': {e}")
+            print("[INFO] Starting with an empty database.")
+            self.embeddings_db = {}
+
     def detect_faces(self, frame):
         """
         Detect faces in a frame

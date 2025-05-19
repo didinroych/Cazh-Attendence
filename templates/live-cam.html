@@ -6,52 +6,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Face Verification System - Auto Mode</title>
     <style>
+         :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --background: #f9fafb;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 0.75rem;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
         }
         
         .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
         }
         
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
         }
         
         .video-container {
             position: relative;
             text-align: center;
-            margin: 20px 0;
+            margin: 1.5rem 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background-color: #000;
         }
         
         #webcam {
             width: 100%;
             max-width: 640px;
             height: auto;
-            border-radius: 10px;
+            border-radius: var(--radius);
             background-color: #000;
-            border: 5px solid #ddd;
-            transition: border-color 0.3s;
+            border: 5px solid var(--border);
+            transition: all 0.3s ease;
         }
         
         #webcam.verified {
-            border-color: #28a745;
+            border-color: var(--success);
+            box-shadow: 0 0 0 1px var(--success);
         }
         
         #webcam.spoof {
-            border-color: #ffc107;
+            border-color: var(--warning);
+            box-shadow: 0 0 0 1px var(--warning);
         }
         
         #webcam.no-face {
-            border-color: #dc3545;
+            border-color: var(--danger);
+            box-shadow: 0 0 0 1px var(--danger);
         }
         
         #canvas {
@@ -59,37 +107,52 @@
         }
         
         .controls {
-            text-align: center;
-            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
         }
         
         button {
-            background-color: #007bff;
+            background-color: var(--primary);
             color: white;
-            padding: 12px 30px;
+            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 5px;
+            border-radius: var(--radius);
             cursor: pointer;
-            font-size: 16px;
-            margin: 0 10px;
-            transition: background-color 0.3s;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-width: 140px;
         }
         
         button:hover:not(:disabled) {
-            background-color: #0056b3;
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active:not(:disabled) {
+            transform: translateY(0);
         }
         
         button:disabled {
-            background-color: #ccc;
+            background-color: var(--text-light);
+            opacity: 0.6;
             cursor: not-allowed;
         }
         
         .danger-btn {
-            background-color: #dc3545;
+            background-color: var(--danger);
         }
         
         .danger-btn:hover:not(:disabled) {
-            background-color: #c82333;
+            background-color: #dc2626;
         }
         
         .status-bar {
@@ -100,32 +163,69 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 10;
         }
         
         .status-indicator {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            font-weight: bold;
+            padding: 0.4rem 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-indicator:before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
         }
         
         .status-live {
-            background-color: #28a745;
+            background-color: var(--success);
             color: white;
+        }
+        
+        .status-live:before {
+            background-color: white;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+            animation: pulse 1.5s infinite;
         }
         
         .status-stopped {
-            background-color: #dc3545;
+            background-color: var(--danger);
             color: white;
         }
         
+        .status-stopped:before {
+            background-color: white;
+        }
+        
         .auto-verify-indicator {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            font-weight: bold;
-            background-color: #17a2b8;
+            padding: 0.4rem 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            font-weight: 600;
+            background-color: var(--info);
             color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .auto-verify-indicator:before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: white;
+            animation: pulse 1.5s infinite;
         }
         
         .live-result {
@@ -133,75 +233,260 @@
             bottom: 10px;
             left: 10px;
             right: 10px;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 1rem;
+            border-radius: var(--radius);
             display: none;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            animation: fadeIn 0.3s ease;
         }
         
         .result-text {
             margin: 0;
-            font-weight: bold;
+            font-weight: 600;
             text-align: center;
         }
         
         .error-message {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin: 1rem 0;
             display: none;
+            animation: fadeIn 0.3s ease;
+            font-weight: 500;
         }
         
         .settings {
-            margin: 20px 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background-color: #f8fafc;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        
+        .settings h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: var(--text);
+            font-weight: 600;
         }
         
         .settings label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            color: var(--text);
         }
         
         .settings select {
             width: 100%;
-            padding: 8px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 0.75rem;
+            margin: 0.5rem 0 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background-color: white;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        
+        .settings select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
         
         .settings input[type="checkbox"] {
-            margin-right: 10px;
+            margin-right: 0.75rem;
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: var(--primary);
         }
         
         .settings input[type="range"] {
             width: 100%;
-            margin: 10px 0;
+            margin: 0.75rem 0;
+            accent-color: var(--primary);
         }
         
         .interval-display {
             text-align: center;
-            font-weight: bold;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 0.5rem;
         }
         
         .debug-info {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 12px;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f1f5f9;
+            border-radius: var(--radius);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
             display: none;
+            border: 1px solid var(--border);
+            white-space: pre-wrap;
+        }
+        
+        .navigation {
+            background-color: var(--card);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+        
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius);
+            transition: all 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+            background-color: var(--background);
+        }
+        
+        .nav-links a.active {
+            color: white;
+            background-color: var(--primary);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .mobile-menu-btn span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: var(--text);
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background-color: var(--card);
+                padding: 1rem;
+                gap: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                display: none;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .nav-links a {
+                display: block;
+                padding: 0.75rem 1rem;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.2);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 1.25rem;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
+    <nav class="navigation">
+        <div class="nav-container">
+            <div class="logo">Face Verification System</div>
+            <ul class="nav-links">
+                <li><a href="/" class="active">Live Camera</a></li>
+                <li><a href="/regist-new-face">Register Face</a></li>
+                <li><a href="/user-list">User List</a></li>
+            </ul>
+            <button class="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
     <div class="container">
         <h1>Live Face Verification System</h1>
 
@@ -220,6 +505,7 @@
         <div class="error-message" id="error-message"></div>
 
         <div class="settings">
+            <h3>Camera Settings</h3>
             <label>
                 Camera Selection:
                 <select id="camera-select">
@@ -512,6 +798,20 @@
 
         // Debug: Show console logs
         console.log('Script loaded');
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+
+                // Animate the hamburger icon
+                const spans = mobileMenuBtn.querySelectorAll('span');
+                spans.forEach(span => span.classList.toggle('active'));
+            });
+        }
     </script>
 </body>
 
