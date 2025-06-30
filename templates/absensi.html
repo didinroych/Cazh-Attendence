@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Face Verification System</title>
+    <title>Attendance System - Clock In/Out</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
@@ -13,10 +13,10 @@
         <div class="nav-container">
             <div class="logo">Face Verification System</div>
             <ul class="nav-links">
-                <li><a href="/" class="active">Live Camera</a></li>
+                <li><a href="/">Live Camera</a></li>
                 <li><a href="/regist-new-face">Register Face</a></li>
                 <li><a href="/user-list">User List</a></li>
-                <li><a href="/absensi">Absen</a></li>
+                <li><a href="/absensi" class="active">Absen</a></li>
                 <li><a href="/api-docs">Swager</a></li>
             </ul>
             <button class="mobile-menu-btn">
@@ -28,53 +28,54 @@
         </div>
     </nav>
 
-    <div class="single-layout">
+    <div class="main-layout">
+        <!-- Main Attendance Section -->
         <div class="container">
-            <h1>Live Face Verification System</h1>
+            <h1>Attendance System</h1>
 
+            <!-- Camera Section -->
             <div class="video-container">
                 <video id="webcam" autoplay playsinline></video>
                 <canvas id="canvas"></canvas>
                 <div class="status-bar">
                     <div id="status-indicator" class="status-indicator status-stopped">Camera Off</div>
-                    <div id="auto-verify-indicator" class="auto-verify-indicator" style="display: none;">Auto-Verify OFF</div>
                 </div>
                 <div id="live-result" class="live-result">
                     <p id="result-text" class="result-text"></p>
                 </div>
             </div>
 
+            <!-- Messages -->
             <div class="error-message" id="error-message"></div>
+            <div class="success-message" id="success-message"></div>
 
-            <div class="settings">
-                <h3>Camera Settings</h3>
-                <label>
-                    Camera Selection:
-                    <select id="camera-select">
-                        <option value="">Loading cameras...</option>
-                    </select>
-                </label>
-                <label>
-                    <input type="checkbox" id="auto-verify-checkbox"> Enable Auto-Verification
-                </label>
-                <label>
-                    Verification Interval:
-                    <input type="range" id="interval-slider" min="1" max="10" value="3">
-                    <div class="interval-display">Every <span id="interval-value">3</span> seconds</div>
-                </label>
-            </div>
-
+            <!-- Control Buttons -->
             <div class="controls">
                 <button id="start-btn">Start Camera</button>
-                <button id="verify-btn" disabled>Manual Verify</button>
+                <button id="clock-in-btn" class="success-btn" disabled>Clock In</button>
+                <button id="clock-out-btn" class="danger-btn" disabled>Clock Out</button>
                 <button id="stop-btn" class="danger-btn" disabled>Stop Camera</button>
             </div>
+        </div>
 
-            <div class="debug-info" id="debug-info"></div>
+        <!-- Attendance List Sidebar -->
+        <div class="attendance-list">
+            <div class="list-header">
+                <h2>📋 Daftar Absensi Hari Ini</h2>
+                <button class="refresh-btn" id="refresh-list">↻ Refresh</button>
+            </div>
+
+            <div class="current-date" id="current-date">-</div>
+
+            <div id="attendance-list-container">
+                <div class="empty-state">
+                    Belum ada yang absen hari ini
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/live-cam.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
 </body>
 
 </html>

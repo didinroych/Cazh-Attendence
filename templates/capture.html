@@ -324,8 +324,11 @@
                 <li><a href="/">Live Camera</a></li>
                 <li><a href="/regist-new-face" class="active">Register Face</a></li>
                 <li><a href="/user-list">User List</a></li>
+                <li><a href="/absensi">Absen</a></li>
+                <li><a href="/api-docs">Swager</a></li>
             </ul>
             <button class="mobile-menu-btn">
+                <span></span>
                 <span></span>
                 <span></span>
                 <span></span>
@@ -403,7 +406,7 @@
                 statusMsg.textContent = "Uploading...";
 
                 try {
-                    const response = await fetch("/register-face", {
+                    const response = await fetch("/register-face-average", {
                         method: "POST",
                         body: formData,
                     });

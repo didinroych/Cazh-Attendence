@@ -1,19 +1,10 @@
 #!/usr/bin/env python
-"""
-detect.py - Face detection and recognition
-
-This script detects and recognizes faces in images or video streams using
-pre-trained face recognition embeddings.
-
-Usage:
-  python detect.py --embeddings path/to/embeddings.pkl [--image path/to/image.jpg] [--video path/to/video.mp4] [--webcam]
-"""
-
 import os
 import cv2
 import argparse
 import pickle
 import numpy as np
+import random
 from datetime import datetime
 
 class FaceDetectionRecognition:
@@ -52,6 +43,10 @@ class FaceDetectionRecognition:
         
         # Load embeddings database
         self.load_embeddings(embeddings_path)
+        
+    def generate_uid_face(self):
+        """Generate a unique 8-digit face ID"""
+        return random.randint(10000000, 99999999)
     
     def check_models(self):
         """Check if required models exist, otherwise prompt for download"""
@@ -103,25 +98,10 @@ class FaceDetectionRecognition:
             config=""
         )
     
-    # def load_embeddings(self, embeddings_path):
-    #     """
-    #     Load face embeddings from a pickle file
-        
-    #     Args:
-    #         embeddings_path: Path to the embeddings database pickle file
-    #     """
-    #     if not os.path.exists(embeddings_path):
-    #         raise FileNotFoundError(f"Embeddings file not found at {embeddings_path}")
-        
-    #     with open(embeddings_path, 'rb') as f:
-    #         self.embeddings_db = pickle.load(f)
-        
-    #     print(f"Loaded {len(self.embeddings_db)} face profiles")
-
     def load_embeddings(self, embeddings_path):
         """
         Load face embeddings from a pickle file safely.
-        If the file doesn't exist or is empty, initialize an empty database.
+        New format: {uid_face: {"name": str, "embeddings": array, "uid_face": int}}
         """
         self.embeddings_db = {}  # Default: empty DB
 
@@ -135,7 +115,23 @@ class FaceDetectionRecognition:
 
         try:
             with open(embeddings_path, 'rb') as f:
-                self.embeddings_db = pickle.load(f)
+                data = pickle.load(f)
+                
+            # Handle old format conversion (name: embeddings -> uid: {name, embeddings, uid_face})
+            if data and isinstance(list(data.values())[0], np.ndarray):
+                print("[INFO] Converting old format to new format...")
+                new_db = {}
+                for name, embeddings in data.items():
+                    uid = self.generate_uid_face()
+                    new_db[uid] = {
+                        "name": name,
+                        "embeddings": embeddings,
+                        "uid_face": uid
+                    }
+                self.embeddings_db = new_db
+            else:
+                self.embeddings_db = data
+                
             print(f"[INFO] Loaded {len(self.embeddings_db)} face profiles from '{embeddings_path}'")
         except Exception as e:
             print(f"[ERROR] Failed to load embeddings from '{embeddings_path}': {e}")
@@ -188,41 +184,31 @@ class FaceDetectionRecognition:
 
     def recognize_face(self, frame, face):
         """
-        Recognize a face from the database
-        
-        Args:
-            frame: Input image frame
-            face: Face coordinates
-            
-        Returns:
-            name: Recognized person name or "Unknown"
-            confidence: Recognition confidence score
+        Updated recognize face function for new data structure - now returns uid_face
         """
-
         aligned_face = self.face_recognizer.alignCrop(frame, face)
         if self.is_spoof_frame(aligned_face):
-            return "Spoof Detected", 0.0
+            return "Spoof Detected", 0.0, None
         if len(self.embeddings_db) == 0:
-            return "Unknown", 0.0
+            return "Unknown", 0.0, None
         
         try:
-            # Get face embedding
             face_feature = self.get_face_embedding(frame, face)
             
-            # Compare with database
             best_match = None
             best_score = 0.0
+            best_uid = None
             
-            for name, stored_feature in self.embeddings_db.items():
-                # Calculate cosine similarity manually
-                # Normalize vectors to unit length
+            for uid, face_data in self.embeddings_db.items():
+                stored_feature = face_data["embeddings"]
+                name = face_data["name"]
+                
+                # Calculate cosine similarity
                 norm_face = np.linalg.norm(face_feature)
                 norm_stored = np.linalg.norm(stored_feature)
                 
                 if norm_face > 0 and norm_stored > 0:
-                    # Calculate cosine similarity: dot product of normalized vectors
                     score = np.dot(face_feature, stored_feature.T) / (norm_face * norm_stored)
-                    # Convert to scalar value
                     score = float(score)
                 else:
                     score = 0.0
@@ -230,27 +216,27 @@ class FaceDetectionRecognition:
                 if score > best_score:
                     best_score = score
                     best_match = name
+                    best_uid = uid
             
-            # Check if score is above threshold
             if best_score > self.recognition_threshold:
-                return best_match, best_score
+                return best_match, best_score, best_uid
             else:
-                return "Unknown", best_score
+                return "Unknown", best_score, None
                 
         except Exception as e:
             print(f"Error recognizing face: {str(e)}")
-            return "Error", 0.0
+            return "Error", 0.0, None
 
     def process_frame(self, frame):
         """
-        Process a frame for face detection and recognition
+        Process a frame for face detection and recognition - now includes uid_face
         
         Args:
             frame: Input image frame
             
         Returns:
             processed_frame: Frame with annotations
-            faces_info: Information about detected faces
+            faces_info: Information about detected faces (now includes uid_face)
         """
         # Create a copy for drawing
         display_frame = frame.copy()
@@ -266,8 +252,8 @@ class FaceDetectionRecognition:
                 # Extract face coordinates
                 x, y, w, h, conf = int(face[0]), int(face[1]), int(face[2]), int(face[3]), face[-1]
                 
-                # Recognize the face
-                name, score = self.recognize_face(frame, face)
+                # Recognize the face (now returns uid_face as well)
+                name, score, uid_face = self.recognize_face(frame, face)
                 label = f"{name} ({score:.2f})"
                 
                 # Color based on recognition status
@@ -280,12 +266,13 @@ class FaceDetectionRecognition:
                 cv2.rectangle(display_frame, (x, y), (x + w, y + h), color, 2)
                 cv2.putText(display_frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
                 
-                # Add to faces info
+                # Add to faces info (now includes uid_face)
                 faces_info.append({
                     "bbox": (x, y, w, h),
                     "confidence": conf,
                     "name": name,
-                    "score": score
+                    "score": score,
+                    "uid_face": uid_face  # Add uid_face to the response
                 })
         
         return display_frame, faces_info
@@ -385,6 +372,64 @@ class FaceDetectionRecognition:
                 cv2.destroyAllWindows()
         
         return True
+    
+    def get_best_face_from_video(self, video_path):
+        """
+        Extract the best quality face from video based on face size and clarity
+        Returns: best_frame, best_face, best_score
+        """
+        cap = cv2.VideoCapture(video_path)
+        best_frame = None
+        best_face = None
+        best_score = 0
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+                
+            faces = self.detect_faces(frame)
+            if faces is not None and len(faces) > 0:
+                for face in faces:
+                    # Calculate face quality score (size + confidence)
+                    x, y, w, h, conf = int(face[0]), int(face[1]), int(face[2]), int(face[3]), face[-1]
+                    face_size = w * h
+                    quality_score = conf * face_size  # Combine confidence and size
+                    
+                    if quality_score > best_score:
+                        best_score = quality_score
+                        best_frame = frame.copy()
+                        best_face = face
+        
+        cap.release()
+        return best_frame, best_face, best_score
+
+    def verify_face_best_match_video(self, video_path):
+        """
+        Find the best matching face in a video for verification
+        Returns: best_match_name, best_score, frame_with_best_match
+        """
+        cap = cv2.VideoCapture(video_path)
+        best_match_name = "Unknown"
+        best_score = 0.0
+        best_frame = None
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+                
+            faces = self.detect_faces(frame)
+            if faces is not None and len(faces) > 0:
+                for face in faces:
+                    name, score = self.recognize_face(frame, face)
+                    if score > best_score and name != "Unknown":
+                        best_score = score
+                        best_match_name = name
+                        best_frame = frame.copy()
+        
+        cap.release()
+        return best_match_name, best_score, best_frame
     
     def process_webcam(self, camera_id=0, output_dir=None):
         """

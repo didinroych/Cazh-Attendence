@@ -1,0 +1,856 @@
+/* ==============================================
+   SHARED STYLES - Face Verification System
+   ============================================== */
+
+:root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #06b6d4;
+    --text: #1f2937;
+    --text-light: #6b7280;
+    --background: #f9fafb;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius: 0.75rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--background);
+    color: var(--text);
+    line-height: 1.5;
+}
+
+
+/* ==============================================
+   NAVIGATION
+   ============================================== */
+
+.navigation {
+    background-color: var(--card);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin-bottom: 1.5rem;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius);
+    transition: all 0.2s;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+    background-color: var(--background);
+}
+
+.nav-links a.active {
+    color: white;
+    background-color: var(--primary);
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mobile-menu-btn span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--text);
+    border-radius: 3px;
+    transition: all 0.3s;
+}
+
+
+/* ==============================================
+   LAYOUT CONTAINERS
+   ============================================== */
+
+.container {
+    background-color: var(--card);
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+}
+
+
+/* Two-column layout for attendance page */
+
+.main-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+}
+
+
+/* Single column layout for other pages */
+
+.single-layout {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+
+/* ==============================================
+   TYPOGRAPHY
+   ============================================== */
+
+h1 {
+    text-align: center;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 0.75rem;
+}
+
+h1:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 3px;
+}
+
+h2 {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+h3 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: var(--text);
+    font-weight: 600;
+}
+
+
+/* ==============================================
+   CAMERA & VIDEO
+   ============================================== */
+
+.video-container {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background-color: #000;
+}
+
+#webcam {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    border-radius: var(--radius);
+    background-color: #000;
+    border: 5px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+#webcam.verified {
+    border-color: var(--success);
+    box-shadow: 0 0 0 1px var(--success);
+}
+
+#webcam.spoof {
+    border-color: var(--warning);
+    box-shadow: 0 0 0 1px var(--warning);
+}
+
+#webcam.no-face {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 1px var(--danger);
+}
+
+#canvas {
+    display: none;
+}
+
+.status-bar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.status-indicator {
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-indicator:before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-live {
+    background-color: var(--success);
+    color: white;
+}
+
+.status-live:before {
+    background-color: white;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    animation: pulse 1.5s infinite;
+}
+
+.status-stopped {
+    background-color: var(--danger);
+    color: white;
+}
+
+.status-stopped:before {
+    background-color: white;
+}
+
+.auto-verify-indicator {
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    background-color: var(--info);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.auto-verify-indicator:before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: white;
+    animation: pulse 1.5s infinite;
+}
+
+.live-result {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 1rem;
+    border-radius: var(--radius);
+    display: none;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    animation: fadeIn 0.3s ease;
+}
+
+.result-text {
+    margin: 0;
+    font-weight: 600;
+    text-align: center;
+}
+
+
+/* ==============================================
+   BUTTONS
+   ============================================== */
+
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+}
+
+button {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 140px;
+}
+
+button:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button:disabled {
+    background-color: var(--text-light);
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.success-btn {
+    background-color: var(--success);
+}
+
+.success-btn:hover:not(:disabled) {
+    background-color: #059669;
+}
+
+.danger-btn {
+    background-color: var(--danger);
+}
+
+.danger-btn:hover:not(:disabled) {
+    background-color: #dc2626;
+}
+
+.refresh-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+    min-width: auto;
+}
+
+.refresh-btn:hover {
+    background-color: var(--background);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+
+/* ==============================================
+   MESSAGES
+   ============================================== */
+
+.error-message {
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin: 1rem 0;
+    display: none;
+    animation: fadeIn 0.3s ease;
+    font-weight: 500;
+}
+
+.success-message {
+    background-color: #d1fae5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin: 1rem 0;
+    display: none;
+    animation: fadeIn 0.3s ease;
+    font-weight: 500;
+}
+
+
+/* ==============================================
+   FORMS & SETTINGS
+   ============================================== */
+
+.settings {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background-color: #f8fafc;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.settings label {
+    display: block;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.settings select {
+    width: 100%;
+    padding: 0.75rem;
+    margin: 0.5rem 0 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: white;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.settings select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.settings input[type="checkbox"] {
+    margin-right: 0.75rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    accent-color: var(--primary);
+}
+
+.settings input[type="range"] {
+    width: 100%;
+    margin: 0.75rem 0;
+    accent-color: var(--primary);
+}
+
+.interval-display {
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary);
+    margin-top: 0.5rem;
+}
+
+
+/* ==============================================
+   ATTENDANCE LIST & STATUS
+   ============================================== */
+
+.attendance-list {
+    background-color: var(--card);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    height: fit-content;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+}
+
+.attendance-status {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background-color: #f8fafc;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.status-value {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.current-date {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.attendance-item {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.attendance-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.attendance-item:last-child {
+    margin-bottom: 0;
+}
+
+.person-name {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
+.person-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.time-info {
+    display: flex;
+    gap: 1rem;
+}
+
+.time-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.time-label {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-bottom: 0.125rem;
+}
+
+.time-value {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-in {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-out {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-absent {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-light);
+    padding: 2rem;
+    font-style: italic;
+}
+
+
+/* ==============================================
+   USER LIST STYLES
+   ============================================== */
+
+.user-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.user-card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.user-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-card.loading {
+    background-color: #f8fafc;
+    animation: pulse 1.5s infinite;
+}
+
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.user-id {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-family: monospace;
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+
+/* ==============================================
+   CAPTURE/REGISTER STYLES
+   ============================================== */
+
+.captured-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.captured-image {
+    border: 1px solid var(--border);
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    background-color: white;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.captured-image:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.captured-image img {
+    width: 100%;
+    border-radius: calc(var(--radius) - 0.5rem);
+    margin-bottom: 0.5rem;
+}
+
+.captured-image p {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    text-align: center;
+}
+
+.status-message {
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    margin-top: 1rem;
+    display: none;
+}
+
+.status-message.info {
+    background-color: #dbeafe;
+    border: 1px solid #93c5fd;
+    color: #1e40af;
+}
+
+.status-message.success {
+    background-color: #d1fae5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.status-message.error {
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+
+
+/* ==============================================
+   DEBUG INFO
+   ============================================== */
+
+.debug-info {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f1f5f9;
+    border-radius: var(--radius);
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    display: none;
+    border: 1px solid var(--border);
+    white-space: pre-wrap;
+}
+
+
+/* ==============================================
+   ANIMATIONS
+   ============================================== */
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ==============================================
+   RESPONSIVE DESIGN
+   ============================================== */
+
+@media (max-width: 1024px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .attendance-list {
+        order: -1;
+        max-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex;
+    }
+    .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background-color: var(--card);
+        padding: 1rem;
+        gap: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: none;
+    }
+    .nav-links.active {
+        display: flex;
+    }
+    .nav-links a {
+        display: block;
+        padding: 0.75rem 1rem;
+    }
+    .time-info {
+        gap: 0.5rem;
+    }
+    .time-item {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 10px;
+    }
+    .container {
+        padding: 1.25rem;
+    }
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    button {
+        width: 100%;
+    }
+}

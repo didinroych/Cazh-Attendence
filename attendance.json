@@ -1,0 +1,61 @@
+{
+  "32498356": {
+    "2025-06-30": {
+      "name": "Jaya",
+      "clock_in_time": "09:49:34",
+      "clock_in_datetime": "2025-06-30T09:49:34.114453",
+      "clock_out_time": "09:49:35",
+      "clock_out_datetime": "2025-06-30T09:49:35.560997",
+      "duration": "0h 0m",
+      "status": "completed",
+      "duration_hours": 0.0
+    }
+  },
+  "89031140": {
+    "2025-06-30": {
+      "name": "ang",
+      "clock_in_time": "10:05:48",
+      "clock_in_datetime": "2025-06-30T10:05:48.571217",
+      "clock_out_time": "10:06:05",
+      "clock_out_datetime": "2025-06-30T10:06:05.839716",
+      "duration": "0h 0m",
+      "status": "completed",
+      "duration_hours": 0.0
+    }
+  },
+  "26825596": {
+    "2025-06-30": {
+      "name": "raysa",
+      "clock_in_time": "10:08:50",
+      "clock_in_datetime": "2025-06-30T10:08:50.201760",
+      "clock_out_time": null,
+      "clock_out_datetime": null,
+      "duration": null,
+      "status": "clocked_in"
+    }
+  },
+  "66147193": {
+    "2025-06-30": {
+      "name": "didin",
+      "clock_in_time": "10:14:47",
+      "clock_in_datetime": "2025-06-30T10:14:47.514276",
+      "clock_out_time": "10:14:51",
+      "clock_out_datetime": "2025-06-30T10:14:51.747325",
+      "duration": "0h 0m",
+      "status": "completed",
+      "duration_hours": 0.0
+    }
+  },
+  "63674591": {
+    "2025-06-30": {
+      "name": "didin",
+      "clock_in_time": "10:56:27",
+      "clock_in_datetime": "2025-06-30T10:56:27.996325",
+      "clock_out_time": "10:56:42",
+      "clock_out_datetime": "2025-06-30T10:56:42.867215",
+      "duration": "0h 0m",
+      "status": "completed",
+      "duration_hours": 0.0
+    }
+  }
+}
